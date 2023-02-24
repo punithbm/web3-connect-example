@@ -18,7 +18,6 @@ export default function Home() {
 
   const switchEthereumChain = async (chainID: string) => {
     if (window.frontier && window.frontier.ethereum) {
-      console.log('window.ethereum');
       await window.frontier.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [
@@ -54,16 +53,6 @@ export default function Home() {
     }
   };
 
-  useEffect(() => {
-    if (provider) {
-      window.frontier.ethereum.on('chainChanged', (chainId: string) => {
-        console.log('chainId changed ', chainId);
-        connectWallet();
-        checkBalanceAndID(address);
-      });
-    }
-  }, [provider]);
-
   const checkBalanceAndID = async (from: string) => {
     if (provider) {
       const chainId = await provider.eth.getChainId();
@@ -78,6 +67,16 @@ export default function Home() {
       console.log('provider not set');
     }
   };
+
+  useEffect(() => {
+    if (provider) {
+      window.frontier.ethereum.on('chainChanged', (chainId: string) => {
+        console.log('chainId changed ', chainId);
+        connectWallet();
+        checkBalanceAndID(address);
+      });
+    }
+  }, [provider]);
 
   return (
     <>
