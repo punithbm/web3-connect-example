@@ -1,7 +1,8 @@
-import Head from 'next/head';
-import { Button } from '@frontierwallet/front-ui';
-import { useEffect, useState } from 'react';
-import Web3 from 'web3';
+import Head from "next/head";
+import { Button } from "@frontierwallet/front-ui";
+import { useEffect, useState } from "react";
+import Web3 from "web3";
+import { ethers } from "ethers";
 
 let provider: Web3;
 declare global {
@@ -12,15 +13,15 @@ declare global {
   }
 }
 export default function Home() {
-  const [address, setAddress] = useState('');
-  const [balance, setBalance] = useState('');
-  const [chainId, setChainId] = useState('');
+  const [address, setAddress] = useState("");
+  const [balance, setBalance] = useState("");
+  const [chainId, setChainId] = useState("");
 
   const switchEthereumChain = async (chainID: string) => {
-    if (window.frontier && window.frontier.ethereum) {
-      console.log('window.ethereum');
-      await window.frontier.ethereum.request({
-        method: 'wallet_switchEthereumChain',
+    if (window && window.ethereum) {
+      console.log("window.ethereum");
+      await window.ethereum.request({
+        method: "wallet_switchEthereumChain",
         params: [
           {
             chainId: chainID,
@@ -28,16 +29,16 @@ export default function Home() {
         ],
       });
     } else {
-      console.log('No frontier wallet');
+      console.log("No frontier wallet");
     }
   };
 
   const checkBalance = async () => {
     try {
-      const newAccounts = await window.frontier.ethereum.request({
-        method: 'eth_requestAccounts',
+      const newAccounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
       });
-      provider = await new Web3(window.frontier.ethereum);
+      provider = await new Web3(window.ethereum);
       const from = newAccounts[0];
       setAddress(from);
       checkBalanceAndID(from);
@@ -46,18 +47,50 @@ export default function Home() {
 
   const connectWallet = async () => {
     if (window.ethereum) {
-      if (window.ethereum.isFrontier || window.frontier) {
+      if (window.ethereum.isFrontier || window) {
         await checkBalance();
       } else {
-        console.log('No frontier wallet');
+        console.log("No frontier wallet");
       }
+    }
+  };
+
+  const sendTransaction = async () => {
+    if (provider) {
+      const params = [
+        {
+          from: "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
+          to: "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
+          gas: "0x76c0", // 30400
+          gasPrice: "0x9184e72a000", // 10000000000000
+          value: "0x9184e72a", // 2441406250
+          data: "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675",
+        },
+      ];
+      try {
+        // const signedTx = await provider.eth.signTransaction({
+        //   from: "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
+        //   to: "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
+        //   gas: "0x76c0", // 30400
+        //   gasPrice: "0x9184e72a000", // 10000000000000
+        //   value: "0x9184e72a", // 2441406250
+        //   chain: "0x89",
+        //   data: "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675",
+        // });
+        const signedTx = await window.ethereum.request({
+          method: "eth_signTransaction",
+          params: params,
+          id: 1,
+        });
+        console.log("sendTransaction ", signedTx);
+      } catch (error) {}
     }
   };
 
   useEffect(() => {
     if (provider) {
-      window.frontier.ethereum.on('chainChanged', (chainId: string) => {
-        console.log('chainId changed ', chainId);
+      window.ethereum.on("chainChanged", (chainId: string) => {
+        console.log("chainId changed ", chainId);
         connectWallet();
         checkBalanceAndID(address);
       });
@@ -68,14 +101,15 @@ export default function Home() {
     if (provider) {
       const chainId = await provider.eth.getChainId();
       const balance = await provider.eth.getBalance(from);
-      console.log('balance fetched ', balance);
-      console.log('chainId fetched ', chainId);
-      const convertedBal = (Number(balance) / Math.pow(10, 18)) as unknown as string;
+      console.log("balance fetched ", balance);
+      console.log("chainId fetched ", chainId);
+      const convertedBal = (Number(balance) /
+        Math.pow(10, 18)) as unknown as string;
       setBalance(convertedBal);
       setChainId(`${chainId}`);
       return;
     } else {
-      console.log('provider not set');
+      console.log("provider not set");
     }
   };
 
@@ -89,26 +123,44 @@ export default function Home() {
       </Head>
       <main className="">
         <div className="flex flex-col relative mt-10 mx-auto justify-center container">
-          <Button className={`text-white ${address ? 'w-[100px]' : 'w-[150px]'}  flex items-center bg-black rounded-lg p-2 mb-5`} disabled={address ? true : false} onClick={() => connectWallet()}>
-            {address ? 'Connected' : 'Connect Wallet'}
+          <Button
+            className={`text-white ${
+              address ? "w-[100px]" : "w-[150px]"
+            }  flex items-center bg-black rounded-lg p-2 mb-5`}
+            disabled={address ? true : false}
+            onClick={() => connectWallet()}
+          >
+            {address ? "Connected" : "Connect Wallet"}
           </Button>
-          {chainId && chainId != '137' && (
-            <Button className={`text-white w-[200px] flex items-center bg-black rounded-lg p-2 mb-5`} onClick={() => switchEthereumChain('0x89')}>
-              {'Switch to Polygon'}
+          {chainId && chainId != "137" && (
+            <Button
+              className={`text-white w-[200px] flex items-center bg-black rounded-lg p-2 mb-5`}
+              onClick={() => switchEthereumChain("0x89")}
+            >
+              {"Switch to Polygon"}
             </Button>
           )}
-          {chainId && chainId != '1' && (
-            <Button className={`text-white w-[200px] flex items-center bg-black rounded-lg p-2 mb-5`} onClick={() => switchEthereumChain('0x1')}>
-              {'Switch to Ethereum'}
+          {chainId && chainId != "1" && (
+            <Button
+              className={`text-white w-[200px] flex items-center bg-black rounded-lg p-2 mb-5`}
+              onClick={() => switchEthereumChain("0x1")}
+            >
+              {"Switch to Ethereum"}
             </Button>
           )}
+          <Button
+            className={`text-white w-[200px] flex items-center bg-black rounded-lg p-2 mb-5`}
+            onClick={() => sendTransaction()}
+          >
+            {"Sign Transaction"}
+          </Button>
           {address && (
             <p className="text-text-900 text-lg font-normal">
               <span className="text-text-300">Address: </span>
               {address}
             </p>
           )}
-          {balance !== '' && (
+          {balance !== "" && (
             <p className="text-text-900 text-lg font-normal">
               <span className="text-text-300">Balance: </span>
               {balance}
