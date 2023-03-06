@@ -39,9 +39,12 @@ export default function Home() {
       window.frontier.ethereum
     );
     const acc = await providerEthers.send("eth_requestAccounts", []);
+    setAddress(acc[0]);
     console.log(acc, "Accounts");
     const balance = await providerEthers.getBalance(acc[0]);
-    console.log(ethers.utils.formatEther(balance), "Balance");
+    const convertedBal = ethers.utils.formatEther(balance);
+    setBalance(convertedBal);
+    console.log(convertedBal, "Balance");
   };
 
   const signMessage = async () => {
@@ -185,7 +188,7 @@ export default function Home() {
             className={`text-white w-[200px] flex items-center bg-black rounded-lg p-2 mb-5`}
             onClick={() => signMessage()}
           >
-            {"Sign Transaction"}
+            {"Approve Transaction"}
           </Button>
           {address && (
             <p className="text-text-900 text-lg font-normal">
