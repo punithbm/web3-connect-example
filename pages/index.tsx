@@ -48,6 +48,7 @@ export default function Home() {
   };
 
   const signMessage = async () => {
+    console.log("Ethers sign");
     const params = [
       {
         from: "0x3205a5fdecd481a8383b9e8cab268749839d222e",
@@ -71,7 +72,6 @@ export default function Home() {
         method: "eth_requestAccounts",
       });
       provider = await new Web3(window.ethereum);
-      const prov = new ethers.providers.Web3Provider(window.ethereum);
       const from = newAccounts[0];
       setAddress(from);
       checkBalanceAndID(from);
@@ -89,6 +89,30 @@ export default function Home() {
   };
 
   const sendTransaction = async () => {
+    // console.log("Web3");
+    if (provider) {
+      const params = [
+        {
+          from: "0x3205a5fdecd481a8383b9e8cab268749839d222e",
+          to: "0xfbdd194376de19a88118e84e279b977f165d01b8",
+          gas: "0x11170",
+          gasPrice: "0x3548e64410",
+          value: "0x0",
+          data: "0x095ea7b300000000000000000000000038f7aa5370439e879370e24add063a11bd74610d00000000000000000000000000000000000000000000000000010b0c9fc361d0",
+        },
+      ];
+      try {
+        const sign = await provider.eth.givenProvider.request({
+          method: "eth_sendTransaction",
+          params: params,
+        });
+        console.log(sign, "sign");
+      } catch (error) {}
+    }
+  };
+
+  const sendTransactionDummy = async () => {
+    console.log("2 called");
     if (provider) {
       const params = [
         {
@@ -101,24 +125,11 @@ export default function Home() {
         },
       ];
       try {
-        const sign = provider.eth.signTransaction({
-          from: "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
-          to: "0xd46e8dd67c5d32be8058bb8eb970870f07244567",
-          gas: "0x76c0", // 30400
-          gasPrice: "0x9184e72a000", // 10000000000000
-          value: "0x9184e72a", // 2441406250
-          data: "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675",
-        });
-        console.log(sign, "Sign");
-        const signedTx = await window.ethereum.request({
-          params: params,
-          id: 1,
-        });
-        const signTransaction = await window.frontier.ethereum.request({
+        const sign = await provider.eth.givenProvider.request({
           method: "eth_sendTransaction",
           params: params,
         });
-        console.log(signTransaction, "Sign Transaction");
+        console.log(sign, "sign");
       } catch (error) {}
     }
   };
@@ -168,6 +179,18 @@ export default function Home() {
           >
             {address ? "Connected" : "Connect Wallet"}
           </Button>
+          <Button
+            className={`text-white ${
+              address ? "w-[100px]" : "w-[150px]"
+            }  flex items-center bg-black rounded-lg p-2 mb-5`}
+            disabled={address ? true : false}
+            onClick={() => {
+              connectWallet();
+              initEthers();
+            }}
+          >
+            {address ? "Connected" : "Connect Wallet using web3.js"}
+          </Button>
           {chainId && chainId != "137" && (
             <Button
               className={`text-white w-[200px] flex items-center bg-black rounded-lg p-2 mb-5`}
@@ -189,6 +212,16 @@ export default function Home() {
             onClick={() => signMessage()}
           >
             {"Approve Transaction"}
+          </Button>
+          <Button
+            className={`text-white w-[200px] flex items-center bg-black rounded-lg p-2 mb-5`}
+            onClick={() => {
+              sendTransaction();
+              sendTransaction();
+              setTimeout(() => {}, 1000);
+            }}
+          >
+            {"Approve Transaction using web3.js"}
           </Button>
           {address && (
             <p className="text-text-900 text-lg font-normal">
